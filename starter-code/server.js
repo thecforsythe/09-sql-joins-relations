@@ -6,7 +6,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
 const app = express();
-const conString = 'postgres://localhost:5432/kilovolt';// TODO: Don't forget to set your own conString
+const conString = 'postgres://postgres:DeltaV@localhost:5432/kilovolt';// TODO: Don't forget to set your own conString
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', function(error) {
@@ -25,10 +25,10 @@ app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables and send it back to the client.
   // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
   client.query(
-    `SELECT *
+    `SELECT articles.*, author, "authorUrl"
     FROM articles
-    INNER JOIN author
-    ON author.author_id = articles.author_id`
+    INNER JOIN authors
+    ON authors.author_id = articles.author_id`
   )
 
 
@@ -73,8 +73,18 @@ app.post('/articles', function(request, response) {
 
   function queryThree(author_id) {
     client.query(
-      ``, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
-      [], // TODO: Add the data from our new article, including the author_id, as data for the SQL query.
+      `INSERT INTO articles
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
+      [
+        request.body.title,
+        request.body.author,
+        request.body.authorUrl,
+        request.body.category,
+        request.body.publishedOn,
+        request.body.body,
+        request.body.author_id,
+        request.body.article_id
+      ], // TODO: Add the data from our new article, including the author_id, as data for the SQL query.
       function(err) {
         if (err) console.error(err);
         response.send('insert complete');
