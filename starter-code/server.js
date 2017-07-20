@@ -24,10 +24,12 @@ app.get('/new', function(request, response) {
 app.get('/articles', function(request, response) {
   // REVIEW: This query will join the data together from our tables and send it back to the client.
   // TODO: Write a SQL query which joins all data from articles and authors tables on the author_id value of each
-  client.query(`SELECT *
+  client.query(
+    `SELECT *
     FROM articles
     INNER JOIN author
-    ON author.author_id = articles.author_id`)
+    ON author.author_id = articles.author_id`
+  )
 
 
   .then(function(result) {
@@ -38,10 +40,19 @@ app.get('/articles', function(request, response) {
   });
 });
 
+// TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
+// TODO: Add the author and "authorUrl" as data for the SQL query
 app.post('/articles', function(request, response) {
   client.query(
-    '', // TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
-    [], // TODO: Add the author and "authorUrl" as data for the SQL query
+    `INSERT INTO
+    articles(author,"authorUrl")
+    VALUES ($1, $2)
+    ON CONFLICT DO NOTHING;`
+    ,
+    [
+      request.body.author,
+      request.body.authorUrl
+    ],
     function(err) {
       if (err) console.error(err)
       queryTwo() // This is our second query, to be executed when this first query is complete.
